@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGeminiService } from '../../../lib/services/geminiService';
-import { GeminiError } from '../../../lib/types/ai';
+import { getGeminiService } from '../../../../lib/services/geminiService';
+import { GeminiError } from '../../../../lib/types/ai';
 
 export async function POST(request: NextRequest) {
   try {

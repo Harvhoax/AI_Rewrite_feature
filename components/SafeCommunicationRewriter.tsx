@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { useSafeRewriter } from '@/hooks/useSafeRewriter';
-import { copyToClipboard, getRiskLevelColor, getSeverityColor } from '@/lib/utils';
-import { MessageComparison, MessageDifference, ToneAnalysis } from '@/lib/types/communication';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/Card';
+import { Badge } from './ui/Badge';
+import { Button } from './ui/Button';
+import { useSafeRewriter } from '../hooks/useSafeRewriter';
+import { copyToClipboard, getRiskLevelColor, getSeverityColor } from '../lib/utils';
+import { MessageComparison, MessageDifference, ToneAnalysis } from '../lib/types/communication';
 
 interface SafeCommunicationRewriterProps {
   initialMessage?: string;
@@ -165,7 +165,7 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
         </div>
 
         {/* Input Section */}
-        <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-xl">
+        <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardContent className="p-8">
             <div className="text-center space-y-2 mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Enter Scam Message</h2>
@@ -175,24 +175,37 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
             </div>
             
             <div className="space-y-6">
-              <div className="relative">
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl opacity-0 group-hover:opacity-20 transition duration-300 blur-sm"></div>
                 <textarea
                   value={scamMessage}
                   onChange={(e) => setScamMessage(e.target.value)}
                   placeholder="Paste the suspicious message here..."
-                  className="w-full h-32 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="relative w-full h-32 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 group-hover:border-blue-300 dark:group-hover:border-blue-500"
                   disabled={isLoading}
                   aria-label="Suspicious message input"
                 />
+                {scamMessage && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  </div>
+                )}
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={handleAnalyze}
                   disabled={!scamMessage.trim() || isLoading}
-                  className="flex-1 h-12 text-lg font-semibold"
+                  className="flex-1 h-12 text-lg font-semibold transform hover:scale-105 transition-all duration-200 disabled:transform-none disabled:opacity-50"
                 >
-                  {isLoading ? 'Analyzing with AI...' : 'Analyze Message'}
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Analyzing with AI...
+                    </div>
+                  ) : (
+                    '🔍 Analyze Message'
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -201,9 +214,9 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
                     reset();
                   }}
                   disabled={isLoading}
-                  className="h-12 px-6"
+                  className="h-12 px-6 transform hover:scale-105 transition-all duration-200 disabled:transform-none disabled:opacity-50"
                 >
-                  Clear
+                  🗑️ Clear
                 </Button>
               </div>
             </div>
@@ -256,12 +269,12 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
 
         {/* Results Section */}
         {result && (
-          <div className="space-y-8">
+          <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
             {/* AI Rewritten Message */}
-            <Card>
+            <Card className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">🤖</span>
+                  <span className="text-2xl animate-bounce">🤖</span>
                   AI Rewritten Safe Message
                 </CardTitle>
                 <CardDescription>
@@ -269,30 +282,43 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <p className="text-blue-800 font-mono text-sm whitespace-pre-wrap">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-200 dark:border-blue-800 shadow-inner">
+                  <p className="text-blue-800 dark:text-blue-200 font-mono text-sm whitespace-pre-wrap leading-relaxed">
                     {result.rewrittenMessage}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={() => handleCopyToClipboard(result.rewrittenMessage, 'rewritten')}
-                    className="flex-1"
+                    className="flex-1 transform hover:scale-105 transition-all duration-200"
                   >
-                    {copiedMessage === 'rewritten' ? '✓ Copied!' : 'Copy Rewritten Message'}
+                    {copiedMessage === 'rewritten' ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-500">✓</span>
+                        Copied!
+                      </div>
+                    ) : (
+                      '📋 Copy Rewritten Message'
+                    )}
                   </Button>
                 </div>
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-semibold text-gray-800 mb-2">AI Explanation:</h4>
-                  <p className="text-sm text-gray-700">{result.explanation}</p>
+                <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                    <span className="text-blue-500">💡</span>
+                    AI Explanation:
+                  </h4>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{result.explanation}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Safety Features */}
-            <Card>
+            <Card className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <CardHeader>
-                <CardTitle>Safety Features in Rewritten Message</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">🛡️</span>
+                  Safety Features in Rewritten Message
+                </CardTitle>
                 <CardDescription>
                   Security measures implemented in the AI-rewritten version
                 </CardDescription>
@@ -300,9 +326,13 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {result.safetyFeatures.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
-                      <span className="text-green-600 text-lg">✓</span>
-                      <span className="text-green-800 text-sm">{feature}</span>
+                    <div 
+                      key={index} 
+                      className="flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-200 transform hover:scale-105"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <span className="text-green-600 text-xl animate-pulse">✓</span>
+                      <span className="text-green-800 dark:text-green-200 text-sm font-medium">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -310,21 +340,28 @@ export const SafeCommunicationRewriter: React.FC<SafeCommunicationRewriterProps>
             </Card>
 
             {/* Verification Steps */}
-            <Card>
+            <Card className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
               <CardHeader>
-                <CardTitle>Verification Steps</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="text-2xl">📋</span>
+                  Verification Steps
+                </CardTitle>
                 <CardDescription>
                   Always follow these steps when you receive suspicious messages
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ol className="space-y-3">
+                <ol className="space-y-4">
                   {result.verificationSteps.map((step, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    <li 
+                      key={index} 
+                      className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-200"
+                      style={{ animationDelay: `${index * 150}ms` }}
+                    >
+                      <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg">
                         {index + 1}
                       </span>
-                      <span className="text-gray-700">{step}</span>
+                      <span className="text-gray-700 dark:text-gray-300 leading-relaxed">{step}</span>
                     </li>
                   ))}
                 </ol>
