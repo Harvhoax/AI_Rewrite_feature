@@ -1,0 +1,254 @@
+import React, { useState } from 'react';
+import { AnimatedButton } from './AnimatedButton';
+import { cn } from '@/lib/utils';
+
+interface ExportButtonProps {
+  data: {
+    originalMessage: string;
+    safeMessage: string;
+    analysis?: string;
+    differences?: Array<{
+      aspect: string;
+      scam: string;
+      official: string;
+      status: string;
+    }>;
+  };
+  className?: string;
+}
+
+export const ExportButton: React.FC<ExportButtonProps> = ({ data, className }) => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportToPDF = async () => {
+    setIsExporting(true);
+    
+    try {
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('Could not open print window');
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Scam Message Analysis Report</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #3b82f6;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .section {
+              margin-bottom: 30px;
+              padding: 20px;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+            }
+            .section h3 {
+              color: #1f2937;
+              margin-top: 0;
+              margin-bottom: 15px;
+              font-size: 1.25rem;
+            }
+            .message-box {
+              background: #f9fafb;
+              padding: 15px;
+              border-radius: 6px;
+              border-left: 4px solid #ef4444;
+              margin: 10px 0;
+            }
+            .safe-message-box {
+              background: #f0fdf4;
+              padding: 15px;
+              border-radius: 6px;
+              border-left: 4px solid #22c55e;
+              margin: 10px 0;
+            }
+            .differences-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 15px;
+            }
+            .differences-table th,
+            .differences-table td {
+              border: 1px solid #d1d5db;
+              padding: 12px;
+              text-align: left;
+            }
+            .differences-table th {
+              background: #f3f4f6;
+              font-weight: 600;
+            }
+            .status-fixed {
+              color: #22c55e;
+              font-weight: 600;
+            }
+            .footer {
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 1px solid #e5e7eb;
+              text-align: center;
+              color: #6b7280;
+              font-size: 0.875rem;
+            }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🔍 Scam Message Analysis Report</h1>
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+
+          <div class="section">
+            <h3>⚠️ Original Suspicious Message</h3>
+            <div class="message-box">
+              <strong>Message:</strong><br>
+              "${data.originalMessage}"
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>✅ Safe Official Version</h3>
+            <div class="safe-message-box">
+              <strong>Rewritten Message:</strong><br>
+              "${data.safeMessage}"
+            </div>
+          </div>
+
+          ${data.analysis ? `
+          <div class="section">
+            <h3>📊 Analysis</h3>
+            <p>${data.analysis}</p>
+          </div>
+          ` : ''}
+
+          ${data.differences && data.differences.length > 0 ? `
+          <div class="section">
+            <h3>🔍 Key Differences</h3>
+            <table class="differences-table">
+              <thead>
+                <tr>
+                  <th>Aspect</th>
+                  <th>Scam Version</th>
+                  <th>Official Version</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.differences.map(diff => `
+                  <tr>
+                    <td><strong>${diff.aspect}</strong></td>
+                    <td>${diff.scam}</td>
+                    <td>${diff.official}</td>
+                    <td class="status-fixed">${diff.status}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>This report was generated by Safe Communication Rewriter</p>
+            <p>For more information, visit your financial security app</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Wait for content to load, then print
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportToText = () => {
+    const textContent = `SCAM MESSAGE ANALYSIS REPORT
+Generated: ${new Date().toLocaleDateString()}
+
+ORIGINAL SUSPICIOUS MESSAGE:
+"${data.originalMessage}"
+
+SAFE OFFICIAL VERSION:
+"${data.safeMessage}"
+
+${data.analysis ? `ANALYSIS:
+${data.analysis}
+
+` : ''}${data.differences && data.differences.length > 0 ? `KEY DIFFERENCES:
+${data.differences.map(diff => `
+- ${diff.aspect}: ${diff.scam} → ${diff.official} (${diff.status})
+`).join('')}
+
+` : ''}---
+Generated by Safe Communication Rewriter`;
+
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scam-analysis-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="flex gap-2">
+      <AnimatedButton
+        variant="outline"
+        onClick={exportToPDF}
+        loading={isExporting}
+        leftIcon={
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        }
+        className={cn(className)}
+      >
+        Export PDF
+      </AnimatedButton>
+      
+      <AnimatedButton
+        variant="outline"
+        onClick={exportToText}
+        leftIcon={
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        }
+        className={cn(className)}
+      >
+        Export Text
+      </AnimatedButton>
+    </div>
+  );
+};
